@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Virtual environment
+.venv/
+venv/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS/editor
+.DS_Store
+Thumbs.db
+
+# Training artifacts
+results/*.png
+results/*.csv
+checkpoints/*.pth
+
+# Local datasets and media (too large for GitHub)
+Dataset/
+*.avi
+*.mp4
+
+# Keep placeholders if directories are tracked
+!results/.gitkeep
+!checkpoints/.gitkeep
