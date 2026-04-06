@@ -1,53 +1,208 @@
-# Medical Image Segmentation Framework
+# 🧠 ACDNet: Polyp Detection and Colonoscopy Analysis
 
-An anatomy-conditioned deep learning pipeline for colonoscopy image analysis using HyperKvasir data.
+An anatomy-conditioned deep learning framework for polyp detection, segmentation, and severity analysis in colonoscopy videos using the HyperKvasir dataset.
 
-This project trains and evaluates ACDNet for:
-- Polyp detection
-- Polyp segmentation
-- Ulcerative colitis severity grading (3-class)
-- Temporal consistency learning from video clips
+---
 
-## Project Structure
+## 🚀 Overview
 
-- `src/`: Core Python modules (`dataset.py`, `models.py`, `engine.py`)
-- `notebooks/`: End-to-end notebook pipeline (`ACDNet_Pipeline.ipynb`)
-- `Dataset/`: HyperKvasir data and segmentation assets
-- `checkpoints/`: Saved model weights
-- `results/`: Training curves, logs, and inference outputs
-- `docs/reports/`: Archived implementation/progress reports
+This repository implements ACDNet (Anatomy-Conditioned Dual Attention Network), a unified multi-task deep learning pipeline designed for clinical-grade colonoscopy analysis.
 
-## Requirements
+The system integrates:
+- Detection (Polyp vs Normal)
+- Segmentation (Pixel-wise mask)
+- Severity classification (3-class UC grading)
+- Temporal consistency learning (video-based)
+
+---
+
+## 🎯 Key Features
+
+- Multi-task learning (Detection + Segmentation + Severity)
+- Anatomy-aware conditioning using FiLM
+- Attention mechanism (CBAM: Channel + Spatial)
+- Temporal consistency across video frames
+- MC Dropout for uncertainty estimation
+- Grad-CAM support for explainability
+- Gradio interface for real-time inference
+
+---
+
+## 🧠 Architecture Highlights
+
+- Backbone: EfficientNet-B0 (ImageNet pretrained)
+- Attention: CBAM (Channel + Spatial)
+- Conditioning: FiLM (Anatomy-aware feature modulation)
+- Auxiliary model: Anatomy CNN (location embedding)
+
+Outputs:
+- Detection head
+- Segmentation head
+- Severity classification head
+
+---
+
+## 📂 Repository Structure
+
+```text
+.
+├── src/
+│   ├── dataset.py                  # Data loading, preprocessing, and splits
+│   ├── models.py                   # AnatomyCNN + ACDNet architecture
+│   └── engine.py                   # Training, evaluation, MC Dropout, Grad-CAM
+├── notebooks/
+│   └── ACDNet_Pipeline.ipynb       # End-to-end pipeline
+├── checkpoints/                    # Saved model weights
+├── results/                        # Logs, plots, outputs
+├── docs/reports/                   # Documentation and reports
+├── requirements.txt
+└── README.md
+```
+
+---
+
+## ⚙️ System Requirements
 
 - Python 3.10+
-- CUDA-capable GPU recommended for training
-- Install dependencies from `requirements.txt`
+- PyTorch (GPU recommended)
+- CUDA-enabled GPU (for training)
 
-## Setup
+---
 
-1. Create and activate a virtual environment.
-2. Install dependencies:
+## 🛠 Installation
 
 ```bash
 pip install -r requirements.txt
 ```
 
-## Run Pipeline
+---
 
-Open and run `notebooks/ACDNet_Pipeline.ipynb` in order:
+## 📊 Dataset Setup
 
-1. Cell 1: Install dependencies
-2. Cell 2: Configure paths and device
-3. Cell 3: Build datasets and splits
-4. Cell 4: Train anatomy CNN
-5. Cell 5: Build ACDNet
-6. Cell 6: Train ACDNet
-7. Cell 7: Load best checkpoint
-8. Cell 8: Evaluate on test set
-9. Cell 9/10: Inference and UI
+This project uses the HyperKvasir dataset.
 
-## Notes
+Dataset is not included in this repository.
 
-- Severity grading is configured as 3-class (merged low-severity group).
-- Temporal loss is expected to be enabled during ACDNet training when video loader is available.
-- Ensure checkpoint compatibility when switching between 4-class and 3-class model variants.
+Place dataset locally as:
+
+```text
+Dataset/
+├── labeled-images/
+├── labeled-videos/
+└── segmented-images/
+```
+
+Optional environment variable:
+
+```bash
+export HYPERKVASIR_ROOT=path_to_dataset
+```
+
+On Windows PowerShell:
+
+```powershell
+$env:HYPERKVASIR_ROOT = "D:\path\to\Dataset"
+```
+
+---
+
+## ▶️ Pipeline Execution
+
+Run:
+
+- notebooks/ACDNet_Pipeline.ipynb
+
+Execution flow:
+1. Install dependencies
+2. Configure paths and device
+3. Data preprocessing and splitting
+4. Train Anatomy CNN
+5. Build ACDNet
+6. Train multi-task model
+7. Load best checkpoint
+8. Evaluate on test set
+9. Run inference (image + UI)
+
+---
+
+## 🧪 Training Details
+
+Severity classes (3-class):
+- Class 0: G0-G1 (low severity)
+- Class 1: G2
+- Class 2: G3
+
+Optimization:
+- Mixed Precision (AMP)
+- AdamW optimizer
+- Differential learning rates
+
+Losses:
+- Detection: Binary Cross Entropy
+- Segmentation: Dice + Focal
+- Severity: Cross Entropy
+- Temporal: Video consistency loss
+
+---
+
+## 📈 Outputs
+
+After training:
+
+```text
+checkpoints/
+├── anatomy_cnn_best.pth
+└── acdnet_best.pth
+
+results/
+├── training_log.csv
+├── anatomy_cnn_curves.png
+├── acdnet_training_curves.png
+└── inference_example.png
+```
+
+---
+
+## ⚠️ Common Issues
+
+1. Checkpoint mismatch
+
+Ensure compatibility with the current 3-class severity setup.
+
+2. Temporal loss inactive
+
+Verify video loader is enabled and video data is detected in the dataset step.
+
+3. GPU not detected
+
+Check:
+
+```python
+torch.cuda.is_available()
+```
+
+---
+
+## 🔁 Reproducibility
+
+- Fixed random seed
+- Logged training metrics per epoch
+- Deterministic split strategy with leakage audit
+
+---
+
+## 🔮 Future Work
+
+- Real-time deployment refinement (Gradio/production serving)
+- Advanced temporal modeling for long sequences
+- External clinical validation pipeline
+- Model optimization for edge devices
+
+---
+
+## 📜 License and Dataset
+
+- Code: As per repository license
+- Dataset: Follow HyperKvasir usage guidelines
+
+---
