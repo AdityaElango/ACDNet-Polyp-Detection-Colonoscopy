@@ -21,21 +21,24 @@ def set_seed(seed=42):
 
 # ─── Loss ─────────────────────────────────────────────────────────────────────
 class ACDNetLoss(nn.Module):
-    def __init__(self, lam_det=1.0, lam_seg=0.5, lam_sev=1.0, lam_temp=0.1, pos_weight=3.0, sev_class_weights=None):
+    def __init__(self, lam_det=1.0, lam_seg=0.5, lam_sev=1.0, lam_temp=0.1, pos_weight=3.0,
+                 sev_class_weights=None, sev_loss_type="focal", focal_gamma=1.0):
         super().__init__()
         self.lam_det, self.lam_seg = lam_det, lam_seg
         self.lam_sev, self.lam_temp = lam_sev, lam_temp
+        self.sev_loss_type = sev_loss_type
+        self.focal_gamma = focal_gamma
         self.bce_det = nn.BCEWithLogitsLoss(pos_weight=torch.tensor([pos_weight]))
         self.bce_seg = nn.BCEWithLogitsLoss()
         
-        # 🔥 FIX #8: Update severity class weights for 3-class problem (merged grades 0-1 with 1)
-        # New distribution: grade 0-1 (merged, ~30%), grade 2 (~50%), grade 3 (~20%)
-        # Use inverse frequency weighting to emphasize minority classes
+        # Severity is now a 3-class problem with a merged low-severity bucket.
+        # Keep class weights as a buffer so they follow the model across devices.
         if sev_class_weights is None:
             # 3-class weights: [merged_0-1, grade_2, grade_3]
             sev_class_weights = torch.tensor([1.0, 0.7, 1.2], dtype=torch.float32)
-        
-        self.ce_sev = nn.CrossEntropyLoss(weight=sev_class_weights, label_smoothing=0.1)
+
+        self.register_buffer("sev_class_weights", sev_class_weights.float())
+        self.ce_sev = nn.CrossEntropyLoss(weight=self.sev_class_weights, label_smoothing=0.1)
 
     def detection_loss(self, logit, label):
         v = label >= 0
@@ -57,10 +60,18 @@ class ACDNetLoss(nn.Module):
     def severity_loss(self, logit, grade):
         v = grade >= 0
         if v.sum() == 0: return torch.tensor(0., device=logit.device, requires_grad=True)
-        # 🔥 Move class weights to same device as logit
-        if self.ce_sev.weight is not None:
-            self.ce_sev.weight = self.ce_sev.weight.to(logit.device)
-        return self.ce_sev(logit[v], grade[v])
+        if self.sev_loss_type == "ce":
+            return self.ce_sev(logit[v], grade[v])
+
+        # Focal loss keeps the class weights but down-weights easy majority examples.
+        logits = logit[v]
+        targets = grade[v]
+        log_probs = F.log_softmax(logits, dim=1)
+        probs = log_probs.exp()
+        ce = F.nll_loss(log_probs, targets, weight=self.sev_class_weights, reduction="none")
+        pt = probs.gather(1, targets.unsqueeze(1)).squeeze(1).clamp_(1e-6, 1.0)
+        focal = (1.0 - pt).pow(self.focal_gamma) * ce
+        return focal.mean()
 
     def temporal_loss(self, sev_seq):
         if sev_seq.shape[0] < 2: return torch.tensor(0., device=sev_seq.device, requires_grad=True)
@@ -176,7 +187,16 @@ def train_one_epoch(model, image_loader, video_loader, criterion, optimizer, dev
         for k in ["detection","segmentation","severity"]:
             M[k] += L[k].item()
         M["total"] += total.item(); M["temporal"] += temp.item(); nb += 1
-    return {k: v/max(nb,1) for k,v in M.items()}
+    epoch_metrics = {k: v/max(nb,1) for k, v in M.items()}
+    print(
+        f"Epoch train summary: train_loss={epoch_metrics['total']:.4f} "
+        f"det_loss={epoch_metrics['detection']:.4f} "
+        f"seg_loss={epoch_metrics['segmentation']:.4f} "
+        f"sev_loss={epoch_metrics['severity']:.4f} "
+        f"temp_loss={epoch_metrics['temporal']:.4f}",
+        flush=True,
+    )
+    return epoch_metrics
 
 
 # ─── Validate ─────────────────────────────────────────────────────────────────

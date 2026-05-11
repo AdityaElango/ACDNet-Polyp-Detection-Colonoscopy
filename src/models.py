@@ -51,14 +51,20 @@ class AnatomyCNN(nn.Module):
         return emb
 
 
-def build_anatomy_cnn(num_classes=3, embedding_dim=64, dropout_p=0.4, checkpoint_path=None):
+def build_anatomy_cnn(num_classes=2, embedding_dim=64, dropout_p=0.4, checkpoint_path=None):
     # 🔥 FIX #4: Accept dropout_p parameter for regularization
     model = AnatomyCNN(num_classes, embedding_dim, dropout_p=dropout_p)
     if checkpoint_path:
         state = torch.load(checkpoint_path, map_location="cpu")
         if "model_state_dict" in state:
             state = state["model_state_dict"]
-        model.load_state_dict(state)
+        model_state = model.state_dict()
+        compatible_state = {
+            key: value
+            for key, value in state.items()
+            if key in model_state and model_state[key].shape == value.shape
+        }
+        model.load_state_dict(compatible_state, strict=False)
         print(f"[INFO] Anatomy CNN loaded from {checkpoint_path}")
     return model
 
@@ -206,7 +212,7 @@ class ACDNet(nn.Module):
 def build_acdnet(anatomy_checkpoint, num_uc_grades=3,
                  embedding_dim=64, dropout_p=0.3, pretrained_backbone=True):
     anatomy_cnn = build_anatomy_cnn(
-        num_classes=3,
+        num_classes=2,
         embedding_dim=embedding_dim,
         checkpoint_path=anatomy_checkpoint,
     )

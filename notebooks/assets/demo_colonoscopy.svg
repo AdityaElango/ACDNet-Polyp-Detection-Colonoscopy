@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="700" viewBox="0 0 1200 700" role="img" aria-label="Stylized colonoscopy demo illustration">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f5efe6"/>
+      <stop offset="100%" stop-color="#fbe7d2"/>
+    </linearGradient>
+    <linearGradient id="tube" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#c86a57"/>
+      <stop offset="100%" stop-color="#8d3e35"/>
+    </linearGradient>
+    <radialGradient id="spot" cx="50%" cy="45%" r="60%">
+      <stop offset="0%" stop-color="#ffe9cf" stop-opacity="1"/>
+      <stop offset="100%" stop-color="#ffd5a8" stop-opacity="0.3"/>
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="700" rx="36" fill="url(#bg)"/>
+  <ellipse cx="920" cy="115" rx="180" ry="90" fill="#fff8ef" opacity="0.9"/>
+  <ellipse cx="300" cy="560" rx="420" ry="130" fill="#e7b78b" opacity="0.25"/>
+  <path d="M160 530 C230 415, 310 362, 393 372 C482 383, 511 470, 583 475 C664 481, 699 405, 752 332 C806 259, 893 205, 1040 170" fill="none" stroke="url(#tube)" stroke-width="100" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M160 530 C230 415, 310 362, 393 372 C482 383, 511 470, 583 475 C664 481, 699 405, 752 332 C806 259, 893 205, 1040 170" fill="none" stroke="#f2c1af" stroke-width="32" stroke-linecap="round" stroke-linejoin="round" opacity="0.85"/>
+  <circle cx="430" cy="390" r="56" fill="#f7d9c5" opacity="0.8"/>
+  <circle cx="435" cy="390" r="20" fill="#b44b46" opacity="0.75"/>
+  <circle cx="650" cy="455" r="50" fill="#f7d9c5" opacity="0.82"/>
+  <circle cx="651" cy="455" r="18" fill="#b44b46" opacity="0.72"/>
+  <circle cx="873" cy="238" r="52" fill="#f7d9c5" opacity="0.82"/>
+  <circle cx="873" cy="238" r="19" fill="#b44b46" opacity="0.74"/>
+  <circle cx="980" cy="180" r="40" fill="#ffe0ca" opacity="0.9"/>
+  <circle cx="980" cy="180" r="15" fill="#d0634f" opacity="0.65"/>
+  <g opacity="0.7">
+    <circle cx="235" cy="250" r="8" fill="#bf6b61"/>
+    <circle cx="260" cy="226" r="6" fill="#bf6b61"/>
+    <circle cx="285" cy="258" r="7" fill="#bf6b61"/>
+    <circle cx="314" cy="240" r="5" fill="#bf6b61"/>
+  </g>
+  <ellipse cx="250" cy="180" rx="110" ry="42" fill="url(#spot)"/>
+  <text x="60" y="92" font-family="Segoe UI, Arial, sans-serif" font-size="34" font-weight="700" fill="#8e4d2e">Demo sample</text>
+  <text x="60" y="132" font-family="Segoe UI, Arial, sans-serif" font-size="20" fill="#8e4d2e">Stylized colonoscopy illustration for quick UI testing</text>
+</svg>
